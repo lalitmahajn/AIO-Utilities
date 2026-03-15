@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useStorage } from '../../hooks/useStorage';
 import '../../styles/global.css';
 
@@ -122,33 +122,15 @@ const AgeCalculator: React.FC = () => {
   const [mode, setMode] = useStorage<CalcMode>('age-calc-mode', 'birthday');
   const [date1, setDate1] = useStorage<string>('age-calc-date1', '');
   const [date2, setDate2] = useStorage<string>('age-calc-date2', ''); // Used for comparison in 'gap' mode
-  const [age, setAge] = useState<{ years: number; months: number; days: number } | null>(null);
-  const [nextBirthday, setNextBirthday] = useState<{ months: number; days: number } | null>(null);
 
-  useEffect(() => {
-    if (mode === 'birthday') {
-      if (date1) calculateDiff(date1, new Date().toISOString().split('T')[0]);
-      else {
-        setAge(null);
-        setNextBirthday(null);
-      }
-    } else {
-      if (date1 && date2) calculateDiff(date1, date2);
-      else {
-        setAge(null);
-        setNextBirthday(null);
-      }
-    }
-  }, [date1, date2, mode]);
-
-  const parseDate = (dateStr: string): Date | null => {
+  const parseDate = useCallback((dateStr: string): Date | null => {
     if (!dateStr) return null;
     
     // Try dd-mm-yy format (now more likely)
     const parts = dateStr.split(/[-/.]/);
     if (parts.length === 3) {
-      let day = parseInt(parts[0]);
-      let month = parseInt(parts[1]) - 1;
+      const day = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1;
       let year = parseInt(parts[2]);
       
       if (year < 100) {
@@ -163,24 +145,20 @@ const AgeCalculator: React.FC = () => {
     
     const native = new Date(dateStr);
     return isNaN(native.getTime()) ? null : native;
-  };
+  }, []);
 
-  const calculateDiff = (start: string, end: string) => {
-    const d1 = parseDate(start);
+  const { age, nextBirthday } = useMemo(() => {
+    const d1 = parseDate(date1);
     const d2 = new Date(); // Use actual current time for birthday mode
-    const d2_comp = mode === 'birthday' ? d2 : parseDate(end);
+    const d2_comp = mode === 'birthday' ? d2 : parseDate(date2);
     
     if (!d1 || !d2_comp) {
-      setAge(null);
-      setNextBirthday(null);
-      return;
+      return { age: null, nextBirthday: null };
     }
 
     // Validation: Birthday cannot be in the future in Birthday mode
     if (mode === 'birthday' && d1 > d2_comp) {
-      setAge(null);
-      setNextBirthday(null);
-      return;
+      return { age: null, nextBirthday: null };
     }
 
     const [birth, today] = d1 < d2_comp ? [d1, d2_comp] : [d2_comp, d1];
@@ -201,11 +179,12 @@ const AgeCalculator: React.FC = () => {
       months--;
     }
 
-    setAge({ years, months, days });
+    const currentAge = { years, months, days };
 
     // Next Birthday Calculation
+    let birthdayCountdown = null;
     if (mode === 'birthday') {
-      let next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+      const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
       
       if (next < today) {
         next.setFullYear(today.getFullYear() + 1);
@@ -221,9 +200,11 @@ const AgeCalculator: React.FC = () => {
       }
       if (nM < 0) nM += 12;
       
-      setNextBirthday({ months: nM, days: nD });
+      birthdayCountdown = { months: nM, days: nD };
     }
-  };
+
+    return { age: currentAge, nextBirthday: birthdayCountdown };
+  }, [date1, date2, mode, parseDate]);
 
   return (
     <div className="glass-card">

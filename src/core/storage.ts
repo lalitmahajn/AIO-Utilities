@@ -7,13 +7,13 @@ export interface StorageAdapter {
 }
 
 export interface AppDB extends Dexie {
-  settings: Table<{ key: string; value: any }, string>;
-  utilityData: Table<{ utilityId: string; data: any }, string>;
+  settings: Table<{ key: string; value: unknown }, string>;
+  utilityData: Table<{ utilityId: string; data: unknown }, string>;
 }
 
 class AppDatabase extends Dexie implements AppDB {
-  settings!: Table<{ key: string; value: any }, string>;
-  utilityData!: Table<{ utilityId: string; data: any }, string>;
+  settings!: Table<{ key: string; value: unknown }, string>;
+  utilityData!: Table<{ utilityId: string; data: unknown }, string>;
 
   constructor() {
     super('AIOUtilDB');

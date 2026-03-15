@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStorage } from '../../hooks/useStorage';
 
 type Category = 'length' | 'weight' | 'temperature' | 'area' | 'data' | 'time';
@@ -66,16 +66,15 @@ const UnitConverter: React.FC = () => {
   const [fromUnit, setFromUnit] = useStorage<string>('unit-conv-from', 'm');
   const [toUnit, setToUnit] = useStorage<string>('unit-conv-to', 'km');
   const [inputValue, setInputValue] = useState<string>('1');
-  const [result, setResult] = useState<number | null>(null);
 
   useEffect(() => {
     // Reset units when category changes if they are not in the new category
     const availableUnits = UNITS[category].map(u => u.value);
     if (!availableUnits.includes(fromUnit)) setFromUnit(availableUnits[0]);
     if (!availableUnits.includes(toUnit)) setToUnit(availableUnits[1] || availableUnits[0]);
-  }, [category]);
+  }, [category, fromUnit, toUnit, setFromUnit, setToUnit]);
 
-  const convert = (value: number, from: string, to: string, cat: Category): number => {
+  const convert = useCallback((value: number, from: string, to: string, cat: Category): number => {
     if (cat === 'temperature') {
       let celsius = value;
       if (from === 'f') celsius = (value - 32) * 5 / 9;
@@ -91,16 +90,13 @@ const UnitConverter: React.FC = () => {
     const fromFactor = units.find(u => u.value === from)?.factor || 1;
     const toFactor = units.find(u => u.value === to)?.factor || 1;
     return (value * fromFactor) / toFactor;
-  };
+  }, []);
 
-  useEffect(() => {
+  const result = useMemo(() => {
     const val = parseFloat(inputValue);
-    if (!isNaN(val)) {
-      setResult(convert(val, fromUnit, toUnit, category));
-    } else {
-      setResult(null);
-    }
-  }, [inputValue, fromUnit, toUnit, category]);
+    if (isNaN(val)) return null;
+    return convert(val, fromUnit, toUnit, category);
+  }, [inputValue, fromUnit, toUnit, category, convert]);
 
   return (
     <div className="glass-card">
