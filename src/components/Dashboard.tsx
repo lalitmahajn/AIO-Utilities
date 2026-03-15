@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
             onClick={() => setSelectedUtility(null)}
           >
             <img 
-              src="/logo.png" 
+              src="logo.png" 
               alt="Logo" 
               style={{ width: '32px', height: '32px', borderRadius: '0.5rem' }} 
             />
