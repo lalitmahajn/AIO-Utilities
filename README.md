@@ -2,7 +2,7 @@
   <h1>🛠️ All-in-One Utilities</h1>
   
   [![Deploy to GitHub Pages](https://github.com/lalitmahajn/AIO-Utilities/actions/workflows/deploy.yml/badge.svg)](https://github.com/lalitmahajn/AIO-Utilities/actions/workflows/deploy.yml)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-red.svg)](LICENSE)
 
   <p><strong>A highly scalable, modern, and high-performance web application serving as a central hub for essential daily utility tools.</strong></p>
 </div>
@@ -140,7 +140,7 @@ Contributions are welcome! Please follow these steps:
 
 ## 📜 License
 
-MIT License - Not for commercial distribution. See LICENSE file for details.
+This project is licensed under the **PolyForm Noncommercial License 1.0.0** — you may use, modify, and distribute this software for **non-commercial purposes only**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
