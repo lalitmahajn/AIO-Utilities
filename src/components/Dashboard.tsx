@@ -45,9 +45,28 @@ const Dashboard: React.FC = () => {
           {selectedUtility && (
             <button 
               onClick={() => setSelectedUtility(null)}
-              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'var(--bg-secondary)' }}
+              className="dashboard-button"
+              style={{ 
+                padding: '0.5rem 1rem', 
+                fontSize: '0.85rem', 
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '0.5rem',
+                color: 'var(--text-primary)',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+              }}
             >
-              Dashboard
+              ← Back to Dashboard
             </button>
           )}
         </div>
