@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStorage } from '../../hooks/useStorage';
 
-type Category = 'length' | 'weight' | 'temperature' | 'area' | 'data' | 'time';
+type Category = 'length' | 'weight' | 'temperature' | 'area' | 'data' | 'time' | 'currency';
 
 interface Unit {
   label: string;
   value: string;
   factor?: number; // Relative to base unit
+  symbol?: string;
 }
 
 const UNITS: Record<Category, Unit[]> = {
@@ -59,6 +60,28 @@ const UNITS: Record<Category, Unit[]> = {
     { label: 'Weeks (wk)', value: 'wk', factor: 604800 },
     { label: 'Years (yr)', value: 'yr', factor: 31536000 },
   ],
+  currency: [
+    { label: 'US Dollar (USD)', value: 'USD', factor: 1, symbol: '$' },
+    { label: 'Euro (EUR)', value: 'EUR', factor: 1, symbol: '€' },
+    { label: 'British Pound (GBP)', value: 'GBP', factor: 1, symbol: '£' },
+    { label: 'Indian Rupee (INR)', value: 'INR', factor: 1, symbol: '₹' },
+    { label: 'Japanese Yen (JPY)', value: 'JPY', factor: 1, symbol: '¥' },
+    { label: 'Chinese Yuan (CNY)', value: 'CNY', factor: 1, symbol: '¥' },
+    { label: 'Singapore Dollar (SGD)', value: 'SGD', factor: 1, symbol: 'S$' },
+    { label: 'South Korean Won (KRW)', value: 'KRW', factor: 1, symbol: '₩' },
+    { label: 'Thai Baht (THB)', value: 'THB', factor: 1, symbol: '฿' },
+    { label: 'Indonesian Rupiah (IDR)', value: 'IDR', factor: 1, symbol: 'Rp' },
+    { label: 'Malaysian Ringgit (MYR)', value: 'MYR', factor: 1, symbol: 'RM' },
+    { label: 'UAE Dirham (AED)', value: 'AED', factor: 1, symbol: 'د.إ' },
+    { label: 'Saudi Riyal (SAR)', value: 'SAR', factor: 1, symbol: '﷼' },
+    { label: 'Pakistani Rupee (PKR)', value: 'PKR', factor: 1, symbol: '₨' },
+    { label: 'Bangladesh Taka (BDT)', value: 'BDT', factor: 1, symbol: '৳' },
+    { label: 'Vietnamese Dong (VND)', value: 'VND', factor: 1, symbol: '₫' },
+    { label: 'Philippine Peso (PHP)', value: 'PHP', factor: 1, symbol: '₱' },
+    { label: 'Australian Dollar (AUD)', value: 'AUD', factor: 1, symbol: 'A$' },
+    { label: 'Canadian Dollar (CAD)', value: 'CAD', factor: 1, symbol: 'C$' },
+    { label: 'Swiss Franc (CHF)', value: 'CHF', factor: 1, symbol: 'Fr' },
+  ],
 };
 
 const UnitConverter: React.FC = () => {
@@ -67,14 +90,38 @@ const UnitConverter: React.FC = () => {
   const [toUnit, setToUnit] = useStorage<string>('unit-conv-to', 'km');
   const [inputValue, setInputValue] = useState<string>('1');
 
+  // Currency state
+  const [rates, setRates] = useState<Record<string, number>>({});
+  const [loadingRates, setLoadingRates] = useState(false);
+
+  useEffect(() => {
+    if (category === 'currency' && Object.keys(rates).length === 0) {
+      setLoadingRates(true);
+      fetch('https://api.exchangerate-api.com/v4/latest/USD')
+        .then(res => res.json())
+        .then(data => {
+          setRates(data.rates);
+          setLoadingRates(false);
+        })
+        .catch(() => setLoadingRates(false));
+    }
+  }, [category, rates]);
+
   useEffect(() => {
     // Reset units when category changes if they are not in the new category
     const availableUnits = UNITS[category].map(u => u.value);
     if (!availableUnits.includes(fromUnit)) setFromUnit(availableUnits[0]);
-    if (!availableUnits.includes(toUnit)) setToUnit(availableUnits[1] || availableUnits[0]);
+    
+    // For currency, default to USD to INR if available
+    if (category === 'currency') {
+      if (!fromUnit || fromUnit === 'm') setFromUnit('USD');
+      if (!toUnit || toUnit === 'km') setToUnit('INR');
+    } else {
+      if (!availableUnits.includes(toUnit)) setToUnit(availableUnits[1] || availableUnits[0]);
+    }
   }, [category, fromUnit, toUnit, setFromUnit, setToUnit]);
 
-  const convert = useCallback((value: number, from: string, to: string, cat: Category): number => {
+  const convert = useCallback((value: number, from: string, to: string, cat: Category, currencyRates: Record<string, number>): number => {
     if (cat === 'temperature') {
       let celsius = value;
       if (from === 'f') celsius = (value - 32) * 5 / 9;
@@ -86,6 +133,13 @@ const UnitConverter: React.FC = () => {
       return celsius;
     }
 
+    if (cat === 'currency') {
+      const fromRate = currencyRates[from] || 1;
+      const toRate = currencyRates[to] || 1;
+      // Rates are relative to USD
+      return (value / fromRate) * toRate;
+    }
+
     const units = UNITS[cat];
     const fromFactor = units.find(u => u.value === from)?.factor || 1;
     const toFactor = units.find(u => u.value === to)?.factor || 1;
@@ -95,8 +149,8 @@ const UnitConverter: React.FC = () => {
   const result = useMemo(() => {
     const val = parseFloat(inputValue);
     if (isNaN(val)) return null;
-    return convert(val, fromUnit, toUnit, category);
-  }, [inputValue, fromUnit, toUnit, category, convert]);
+    return convert(val, fromUnit, toUnit, category, rates);
+  }, [inputValue, fromUnit, toUnit, category, convert, rates]);
 
   return (
     <div className="glass-card">
@@ -166,7 +220,11 @@ const UnitConverter: React.FC = () => {
           />
         </div>
 
-        {result !== null && (
+        {loadingRates ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+            Fetching live rates...
+          </div>
+        ) : result !== null && (
           <div style={{
             marginTop: '1rem',
             padding: '1.5rem',
@@ -175,13 +233,49 @@ const UnitConverter: React.FC = () => {
             textAlign: 'center',
             border: '1px solid var(--glass-border)'
           }}>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Result</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)', wordBreak: 'break-all' }}>
-              {result.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-            </div>
-            <div style={{ fontSize: '1rem', color: 'var(--text-primary)', marginTop: '0.5rem' }}>
-              {UNITS[category].find(u => u.value === toUnit)?.label}
-            </div>
+             {category === 'currency' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>Exchange Rate Comparison</div>
+                <div className="currency-comparison">
+                  <div className="currency-box">
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>From</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      {UNITS.currency.find(u => u.value === fromUnit)?.symbol} {parseFloat(inputValue).toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--accent-secondary)', marginTop: '0.25rem' }}>{fromUnit}</div>
+                  </div>
+
+                  <div className="currency-arrow">→</div>
+
+                  <div className="currency-box target">
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>To</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '600', color: 'var(--accent-primary)' }}>
+                      {UNITS.currency.find(u => u.value === toUnit)?.symbol} {result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginTop: '0.25rem' }}>{toUnit}</div>
+                  </div>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                    1 {fromUnit} ≈ {(result / parseFloat(inputValue)).toFixed(4)} {toUnit}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '0.5rem' }}>
+                    Rates are live via ExchangeRate-API.
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Result</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)', wordBreak: 'break-all' }}>
+                  {result.toLocaleString(undefined, { maximumFractionDigits: 6 })}
+                </div>
+                <div style={{ fontSize: '1rem', color: 'var(--text-primary)', marginTop: '0.5rem' }}>
+                  {UNITS[category].find(u => u.value === toUnit)?.label}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
