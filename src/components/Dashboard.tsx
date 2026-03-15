@@ -131,6 +131,23 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       )}
+      
+      {/* Footer Attribution */}
+      <footer style={{
+        marginTop: '4rem',
+        padding: '2rem 1rem',
+        textAlign: 'center',
+        color: 'var(--text-secondary)',
+        fontSize: '0.9rem',
+        borderTop: '1px solid var(--border-color)',
+      }}>
+        <p>
+          &copy; {new Date().getFullYear()} All-in-One Utilities. Developed by 
+          <a href="https://github.com/lalitmahajn" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'none', marginLeft: '0.25rem', fontWeight: '500' }}>
+            Lalit
+          </a>.
+        </p>
+      </footer>
     </div>
   </div>
 );
