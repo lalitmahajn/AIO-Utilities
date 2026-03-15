@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStorage } from '../../hooks/useStorage';
+import '../../styles/global.css';
 
 type Category = 'length' | 'weight' | 'temperature' | 'area' | 'data' | 'time' | 'currency';
 
@@ -108,14 +109,12 @@ const UnitConverter: React.FC = () => {
   }, [category, rates]);
 
   useEffect(() => {
-    // Reset units when category changes if they are not in the new category
     const availableUnits = UNITS[category].map(u => u.value);
     if (!availableUnits.includes(fromUnit)) setFromUnit(availableUnits[0]);
     
-    // For currency, default to USD to INR if available
     if (category === 'currency') {
-      if (!fromUnit || fromUnit === 'm') setFromUnit('USD');
-      if (!toUnit || toUnit === 'km') setToUnit('INR');
+      if (!fromUnit || !UNITS.currency.find(u => u.value === fromUnit)) setFromUnit('USD');
+      if (!toUnit || !UNITS.currency.find(u => u.value === toUnit)) setToUnit('INR');
     } else {
       if (!availableUnits.includes(toUnit)) setToUnit(availableUnits[1] || availableUnits[0]);
     }
@@ -136,7 +135,6 @@ const UnitConverter: React.FC = () => {
     if (cat === 'currency') {
       const fromRate = currencyRates[from] || 1;
       const toRate = currencyRates[to] || 1;
-      // Rates are relative to USD
       return (value / fromRate) * toRate;
     }
 
@@ -152,19 +150,52 @@ const UnitConverter: React.FC = () => {
     return convert(val, fromUnit, toUnit, category, rates);
   }, [inputValue, fromUnit, toUnit, category, convert, rates]);
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '0.75rem',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '0.6rem',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    fontSize: '0.9rem',
+    transition: 'border-color 0.2s',
+  };
+
   return (
-    <div className="glass-card">
-      <h2 className="gradient-text" style={{ marginBottom: '1.5rem' }}>Unit Converter</h2>
+    <div className="glass-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ fontSize: '2rem' }}>📐</div>
+        <h2 className="gradient-text" style={{ margin: 0, fontSize: '1.75rem' }}>Unit Converter</h2>
+      </div>
       
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+      {/* Category Picker */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.4rem', 
+        marginBottom: '2rem', 
+        overflowX: 'auto', 
+        paddingBottom: '0.6rem',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+      }}
+      className="no-scrollbar"
+      >
         {(Object.keys(UNITS) as Category[]).map(cat => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
             style={{
-              background: category === cat ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-              color: category === cat ? 'var(--bg-primary)' : 'var(--text-primary)',
-              textTransform: 'capitalize'
+              flexShrink: 0,
+              background: category === cat ? 'var(--accent-primary)' : 'rgba(255,255,255,0.03)',
+              color: category === cat ? 'var(--bg-primary)' : 'var(--text-secondary)',
+              border: `1px solid ${category === cat ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+              padding: '0.5rem 1rem',
+              borderRadius: '999px',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              textTransform: 'capitalize',
+              transition: 'all 0.2s ease',
             }}
           >
             {cat}
@@ -173,108 +204,108 @@ const UnitConverter: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div className="responsive-grid-2">
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>From</label>
-            <select
-              value={fromUnit}
-              onChange={(e) => setFromUnit(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                padding: '0.5rem',
-                borderRadius: '0.375rem'
-              }}
-            >
-              {UNITS[category].map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>To</label>
-            <select
-              value={toUnit}
-              onChange={(e) => setToUnit(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                padding: '0.5rem',
-                borderRadius: '0.375rem'
-              }}
-            >
-              {UNITS[category].map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-            </select>
-          </div>
-        </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Value</label>
+          <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>Enter Value</label>
           <input
             type="number"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            style={{ width: '100%', fontSize: '1.2rem' }}
+            style={{ ...inputStyle, fontSize: '1.25rem', fontWeight: 'bold' }}
+            placeholder="0.00"
           />
         </div>
 
+        <div className="responsive-grid-2" style={{ gap: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>From</label>
+            <select
+              value={fromUnit}
+              onChange={(e) => setFromUnit(e.target.value)}
+              style={inputStyle}
+            >
+              {UNITS[category].map(u => <option key={u.value} value={u.value} style={{ background: '#0f172a' }}>{u.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>To</label>
+            <select
+              value={toUnit}
+              onChange={(e) => setToUnit(e.target.value)}
+              style={inputStyle}
+            >
+              {UNITS[category].map(u => <option key={u.value} value={u.value} style={{ background: '#0f172a' }}>{u.label}</option>)}
+            </select>
+          </div>
+        </div>
+
         {loadingRates ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-            Fetching live rates...
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="spinner" style={{ margin: '0 auto' }}></div>
+            <span style={{ fontSize: '0.9rem' }}>Fetching live rates...</span>
           </div>
         ) : result !== null && (
-          <div style={{
+          <div className="fade-in" style={{
             marginTop: '1rem',
-            padding: '1.5rem',
-            background: 'var(--bg-secondary)',
-            borderRadius: '0.5rem',
+            padding: '2rem',
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))',
+            borderRadius: '1.25rem',
             textAlign: 'center',
-            border: '1px solid var(--glass-border)'
+            border: '1px solid rgba(16,185,129,0.2)',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
+             <div style={{ 
+               position: 'absolute', top: '-10px', right: '-10px', fontSize: '4rem', opacity: 0.05, pointerEvents: 'none' 
+             }}>✨</div>
+
              {category === 'currency' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>Exchange Rate Comparison</div>
-                <div className="currency-comparison">
-                  <div className="currency-box">
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>From</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 'bold' }}>
+                  Exchange Rate
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
+                  <div style={{ textAlign: 'right', flex: 1 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
                       {UNITS.currency.find(u => u.value === fromUnit)?.symbol} {parseFloat(inputValue).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--accent-secondary)', marginTop: '0.25rem' }}>{fromUnit}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{fromUnit}</div>
                   </div>
 
-                  <div className="currency-arrow">→</div>
+                  <div style={{ fontSize: '1.5rem', opacity: 0.3 }}>→</div>
 
-                  <div className="currency-box target">
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>To</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '600', color: 'var(--accent-primary)' }}>
+                  <div style={{ textAlign: 'left', flex: 1 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--accent-primary)' }}>
                       {UNITS.currency.find(u => u.value === toUnit)?.symbol} {result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginTop: '0.25rem' }}>{toUnit}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{toUnit}</div>
                   </div>
                 </div>
                 
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                    1 {fromUnit} ≈ {(result / parseFloat(inputValue)).toFixed(4)} {toUnit}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '0.5rem' }}>
-                    Rates are live via ExchangeRate-API.
+                <div style={{ 
+                  borderTop: '1px solid rgba(255,255,255,0.05)', 
+                  paddingTop: '1rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-secondary)'
+                }}>
+                  1 {fromUnit} ≈ {(result / parseFloat(inputValue)).toFixed(4)} {toUnit}
+                  <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '0.25rem' }}>
+                    Live rates via ExchangeRate-API
                   </div>
                 </div>
               </div>
             ) : (
-              <>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Result</div>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)', wordBreak: 'break-all' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  Result
+                </div>
+                <div style={{ fontSize: '3rem', fontWeight: '800', color: 'var(--text-primary)', wordBreak: 'break-all', lineHeight: 1 }}>
                   {result.toLocaleString(undefined, { maximumFractionDigits: 6 })}
                 </div>
-                <div style={{ fontSize: '1rem', color: 'var(--text-primary)', marginTop: '0.5rem' }}>
+                <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: '500', marginTop: '0.5rem' }}>
                   {UNITS[category].find(u => u.value === toUnit)?.label}
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}

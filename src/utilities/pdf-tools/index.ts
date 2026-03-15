@@ -6,6 +6,7 @@ export function registerPdfTools() {
     id: 'pdf-password-remover',
     name: 'PDF Password Remover',
     description: 'Remove password protection from PDF files securely in your browser.',
+    icon: '🔓',
     category: 'documents',
     component: PdfPasswordRemover,
   });

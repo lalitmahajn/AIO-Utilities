@@ -6,6 +6,7 @@ export const registerUnitConverter = () => {
     id: 'unit-converter',
     name: 'Unit Converter',
     description: 'Convert between different units of length, weight, and temperature.',
+    icon: '📐',
     category: 'converters',
     component: UnitConverter,
   });

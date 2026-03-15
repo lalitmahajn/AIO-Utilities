@@ -3,6 +3,7 @@ import { registerUnitConverter } from './unit-converter';
 import { registerWorldClock } from './world-clock';
 import { registerPdfTools } from './pdf-tools';
 import { registerImageTools } from './image-tools';
+import { registerQrGenerator } from './generators';
 
 export const registerAllUtilities = () => {
   registerAgeCalculator();
@@ -10,4 +11,5 @@ export const registerAllUtilities = () => {
   registerWorldClock();
   registerPdfTools();
   registerImageTools();
+  registerQrGenerator();
 };

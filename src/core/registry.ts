@@ -5,7 +5,7 @@ export interface Utility {
   name: string;
   description: string;
   icon?: string;
-  category: 'calculators' | 'converters' | 'formatters' | 'productivity' | 'documents' | 'other';
+  category: 'calculators' | 'converters' | 'formatters' | 'productivity' | 'documents' | 'generators' | 'other';
   component: ComponentType;
 }
 

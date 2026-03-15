@@ -6,6 +6,7 @@ export const registerAgeCalculator = () => {
     id: 'age-calculator',
     name: 'Age Calculator',
     description: 'Calculate your exact age in years, months, and days.',
+    icon: '🎂',
     category: 'calculators',
     component: AgeCalculator,
   });

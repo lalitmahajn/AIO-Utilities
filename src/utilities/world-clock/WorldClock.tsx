@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStorage } from '../../hooks/useStorage';
+import '../../styles/global.css';
 
 const DEFAULT_ZONES = [
   'UTC',
@@ -66,7 +67,6 @@ const WorldClock: React.FC = () => {
   };
 
   const getTimeOffset = (date: Date, tz: string) => {
-    // Simplistic offset display
     const targetTime = new Date(date.toLocaleString('en-US', { timeZone: tz }));
     const localTime = new Date(date.toLocaleString('en-US', { timeZone: localTz }));
     const diffHours = (targetTime.getTime() - localTime.getTime()) / (1000 * 60 * 60);
@@ -86,9 +86,7 @@ const WorldClock: React.FC = () => {
     setWatchlist(watchlist.filter(z => z !== tz));
   };
 
-  // Enhanced search logic: map each TZ to a searchable string containing ID and Long Generic Name
   const searchRegistry = useMemo(() => {
-    // Map of common keywords to specific TZ IDs to ensure country-based searches work
     const countryMapping: Record<string, string[]> = {
       'india': ['Asia/Kolkata'],
       'usa': ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu'],
@@ -138,7 +136,6 @@ const WorldClock: React.FC = () => {
         region,
         utcOffset,
         countries: associatedCountries,
-        // The display name we show in results
         displayName: tz.replace(/_/g, ' ')
       };
     });
@@ -155,35 +152,14 @@ const WorldClock: React.FC = () => {
 
     const scored = searchRegistry.reduce((acc: ScoredItem[], item) => {
       let score = -1;
+      if (item.countries.some(c => c === query)) score = 100;
+      else if (item.countries.some(c => c.startsWith(query))) score = 80;
+      else if (item.city.toLowerCase().startsWith(query)) score = 70;
+      else if (item.region.toLowerCase().startsWith(query)) score = 60;
+      else if (item.city.toLowerCase().includes(query) || item.countries.some(c => c.includes(query))) score = 40;
+      else if (item.id.toLowerCase().includes(query)) score = 10;
 
-      // 1. Exact country match (Highest priority)
-      if (item.countries.some(c => c === query)) {
-        score = 100;
-      }
-      // 2. Country starts with query
-      else if (item.countries.some(c => c.startsWith(query))) {
-        score = 80;
-      }
-      // 3. City name starts with query
-      else if (item.city.toLowerCase().startsWith(query)) {
-        score = 70;
-      }
-      // 4. Region name starts with query
-      else if (item.region.toLowerCase().startsWith(query)) {
-        score = 60;
-      }
-      // 5. Query is inside city or country name
-      else if (item.city.toLowerCase().includes(query) || item.countries.some(c => c.includes(query))) {
-        score = 40;
-      }
-      // 6. Query is inside the full TZ ID (Lowest priority, handles the "Indian/" noise)
-      else if (item.id.toLowerCase().includes(query)) {
-        score = 10;
-      }
-
-      if (score > 0) {
-        acc.push({ item, score });
-      }
+      if (score > 0) acc.push({ item, score });
       return acc;
     }, []);
 
@@ -195,53 +171,78 @@ const WorldClock: React.FC = () => {
 
   const toggleLive = () => {
     if (isLive) {
-      // Pause: Set customTime to current input/display
       const localISO = new Date(displayTime.getTime() - (displayTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
       setCustomTime(localISO);
     }
     setIsLive(!isLive);
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '0.75rem',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '0.6rem',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    fontSize: '0.9rem',
+    transition: 'border-color 0.2s',
+  };
+
   return (
-    <div className="glass-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 className="gradient-text" style={{ margin: 0 }}>World Clock</h2>
+    <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ fontSize: '2rem' }}>🌍</div>
+          <h2 className="gradient-text" style={{ margin: 0, fontSize: '1.75rem' }}>World Clock</h2>
+        </div>
         <button 
           onClick={toggleLive}
           style={{ 
-            background: isLive ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 146, 60, 0.1)',
+            background: isLive ? 'rgba(74, 222, 128, 0.08)' : 'rgba(251, 146, 60, 0.08)',
             color: isLive ? '#4ade80' : '#fb923c',
             border: `1px solid ${isLive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(251, 146, 60, 0.2)'}`,
-            padding: '0.4rem 0.8rem',
-            fontSize: '0.85rem'
+            padding: '0.5rem 1rem',
+            fontSize: '0.85rem',
+            borderRadius: '0.75rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
           }}
         >
-          {isLive ? '● Live' : '⏸ Paused'}
+          <span style={{ width: '8px', height: '8px', background: isLive ? '#4ade80' : '#fb923c', borderRadius: '50%', boxShadow: `0 0 10px ${isLive ? '#4ade80' : '#fb923c'}` }} />
+          {isLive ? 'Live' : 'Paused'}
         </button>
       </div>
 
       {!isLive && (
-        <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }}>
-          <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+        <div className="fade-in" style={{ marginBottom: '2rem', padding: '1.25rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
+          <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontWeight: '500' }}>
             Set Reference Time (Local)
           </label>
           <input 
             type="datetime-local" 
             value={customTime}
             onChange={(e) => setCustomTime(e.target.value)}
-            style={{ width: '100%', fontSize: '1.1rem' }}
+            style={{ ...inputStyle, fontSize: '1.1rem', fontWeight: '500' }}
           />
         </div>
       )}
 
-      <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-        <input 
-          type="text" 
-          placeholder="Search city or country..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: '100%' }}
-        />
+      <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>🔍</span>
+          <input 
+            type="text" 
+            placeholder="Search city or country..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingLeft: '2.75rem' }}
+          />
+        </div>
         {filteredTimezones.length > 0 && (
           <div 
             className="custom-scrollbar"
@@ -250,15 +251,15 @@ const WorldClock: React.FC = () => {
               top: '100%', 
               left: 0, 
               right: 0, 
-              zIndex: 10, 
-              background: 'var(--bg-primary)', 
+              zIndex: 100, 
+              background: 'rgba(15, 23, 42, 0.95)', 
+              backdropFilter: 'blur(16px)',
               border: '1px solid var(--border-color)',
-              borderRadius: '0.5rem',
-              marginTop: '0.25rem',
+              borderRadius: '0.75rem',
+              marginTop: '0.5rem',
               maxHeight: '320px',
               overflowY: 'auto',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(20px)'
+              boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
           >
             {filteredTimezones.map(item => (
@@ -266,20 +267,24 @@ const WorldClock: React.FC = () => {
                 key={item.id} 
                 onClick={() => handleAddZone(item.id)}
                 style={{ 
-                  padding: '0.75rem 1rem', 
+                  padding: '1rem 1.25rem', 
                   cursor: 'pointer', 
-                  borderBottom: '1px solid var(--border-color)',
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  transition: 'background 0.2s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <span style={{ fontSize: '0.9rem' }}>{item.displayName}</span>
+                <div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-primary)' }}>{item.displayName}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.id}</div>
+                </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: '600' }}>{item.region}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{item.utcOffset}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: '600' }}>{item.region}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', opacity: 0.7 }}>{item.utcOffset}</div>
                 </div>
               </div>
             ))}
@@ -287,8 +292,7 @@ const WorldClock: React.FC = () => {
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Local Time First */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
         <ClockCard 
           tz={localTz} 
           label="Your Location" 
@@ -336,66 +340,97 @@ const ClockCard: React.FC<ClockCardProps> = ({
   formatTime, formatDate, getDayNightStatus, getTimeOffset 
 }) => {
   const isDay = getDayNightStatus(date, tz) === 'day';
+  const accentColor = isDay ? '#fbbf24' : '#818cf8';
+  
   const tzShort = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: tz,
-      timeZoneName: 'short'
-    }).format(date).split(' ').pop()?.replace('GMT', 'UTC');
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        timeZoneName: 'short'
+      }).format(date).split(' ').pop()?.replace('GMT', 'GMT');
+    } catch (e) { return 'GMT'; }
   }, [date, tz]);
   
   return (
     <div style={{ 
-      background: 'var(--bg-secondary)', 
-      borderRadius: '0.75rem', 
-      padding: '1.25rem', 
+      background: 'rgba(255,255,255,0.02)', 
+      borderRadius: '1.25rem', 
+      padding: '1.5rem', 
       border: '1px solid var(--border-color)',
       position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Glow effect */}
+      overflow: 'hidden',
+      transition: 'transform 0.2s',
+    }}
+    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+    >
       <div style={{ 
         position: 'absolute', 
         top: 0, 
         left: 0, 
         width: '4px', 
         height: '100%', 
-        background: isDay ? 'var(--accent-primary)' : '#818cf8',
-        boxShadow: `0 0 15px ${isDay ? 'var(--accent-primary)' : '#818cf8'}`
+        background: accentColor,
+        boxShadow: `0 0 15px ${accentColor}`
       }} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
-            {label} {isLocal && '• Current'}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold' }}>
+              {label}
+            </span>
+            {isLocal && (
+              <span style={{ fontSize: '0.65rem', background: 'var(--accent-primary)', color: 'var(--bg-primary)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>
+                LOCAL
+              </span>
+            )}
           </div>
+          
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-              {formatTime(date, tz)}
+            <div style={{ fontSize: '2.25rem', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              {formatTime(date, tz).split(' ')[0]}
             </div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--accent-primary)', fontWeight: '600' }}>
-              {tzShort}
+            <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-secondary)', opacity: 0.6 }}>
+              {formatTime(date, tz).split(' ')[1]}
             </div>
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-            {tz.replace(/_/g, ' ')} • {formatDate(date, tz)}
+          
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '500', marginTop: '0.25rem' }}>
+            {formatDate(date, tz)}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', opacity: 0.8 }}>
+            {tz.replace(/_/g, ' ')} • {tzShort}
           </div>
         </div>
         
-        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
           {!isLocal && (
             <button 
               onClick={onRemove}
-              style={{ padding: '0.25rem', background: 'transparent', color: 'var(--text-secondary)', fontSize: '1.1rem' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.25rem', cursor: 'pointer', padding: 0 }}
             >
               ×
             </button>
           )}
-          <div style={{ fontSize: '1.5rem' }}>
+          <div style={{ 
+            fontSize: '1.75rem', 
+            width: '48px', 
+            height: '48px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            background: `${accentColor}10`,
+            borderRadius: '1rem',
+            border: `1px solid ${accentColor}20`
+          }}>
             {isDay ? '☀️' : '🌙'}
           </div>
-          <div style={{ fontSize: '0.75rem', color: isDay ? 'var(--accent-primary)' : '#818cf8', fontWeight: '600' }}>
-            {!isLocal && getTimeOffset(date, tz)}
-          </div>
+          {!isLocal && (
+            <div style={{ fontSize: '0.75rem', color: accentColor, fontWeight: '700', letterSpacing: '0.02em' }}>
+              {getTimeOffset(date, tz)}
+            </div>
+          )}
         </div>
       </div>
     </div>
