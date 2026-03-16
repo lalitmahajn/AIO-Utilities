@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent' }}>
       {/* Top Navigation Bar */}
       <nav 
         className="dashboard-nav"
@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
           position: 'sticky', 
           top: 0, 
           zIndex: 100, 
-          background: 'rgba(15, 23, 42, 0.8)', 
+          background: 'rgba(15, 23, 42, 0.65)', 
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid var(--border-color)',
           padding: '0.75rem 2rem',
@@ -310,9 +310,9 @@ const Dashboard: React.FC = () => {
           </a>.
         </p>
       </footer>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default Dashboard;

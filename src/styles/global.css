@@ -6,7 +6,7 @@
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --border-color: #334155;
-  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-bg: rgba(15, 23, 42, 0.6);
   --glass-border: rgba(56, 189, 248, 0.2);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -21,7 +21,7 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-primary);
+  background-color: #0c111d;
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -243,11 +243,114 @@ input:focus {
   animation: fadeIn 0.4s ease-out;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+/* Live Background Styles */
+.live-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-color: #0c111d;
+  overflow: hidden;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(12, 17, 29, 0.4) 100%);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  z-index: 10;
+}
+
+.mesh-ball {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+
+.ball-1 {
+  width: 35vw;
+  height: 35vw;
+  background: var(--accent-primary); /* Cyan */
+  top: -10%;
+  left: -10%;
+  animation: move-1 15s infinite alternate ease-in-out;
+}
+
+.ball-2 {
+  width: 30vw;
+  height: 30vw;
+  background: #7c3aed; /* Purple */
+  bottom: -10%;
+  right: -5%;
+  animation: move-2 18s infinite alternate ease-in-out;
+}
+
+.ball-3 {
+  width: 25vw;
+  height: 25vw;
+  background: #ec4899; /* Vibrant Pink/Magenta */
+  top: 40%;
+  right: 15%;
+  animation: move-3 12s infinite alternate-reverse ease-in-out;
+}
+
+.ball-4 {
+  width: 35vw;
+  height: 35vw;
+  background: #10b981; /* Emerald Green */
+  bottom: 15%;
+  left: 10%;
+  animation: move-4 22s infinite alternate ease-in-out;
+}
+
+@keyframes move-1 {
+  0% { transform: translate(-10%, -10%) scale(1); }
+  33% { transform: translate(15%, 5%) scale(1.1); }
+  66% { transform: translate(-5%, 20%) scale(0.9); }
+  100% { transform: translate(30%, 25%) scale(1.2); }
+}
+
+@keyframes move-2 {
+  0% { transform: translate(10%, 10%) scale(1.2); }
+  33% { transform: translate(-5%, -15%) scale(1); }
+  66% { transform: translate(20%, -5%) scale(1.1); }
+  100% { transform: translate(-30%, -25%) scale(0.8); }
+}
+
+@keyframes move-3 {
+  0% { transform: translate(15%, -15%) scale(1); }
+  33% { transform: translate(-10%, 10%) scale(1.1); }
+  66% { transform: translate(15%, 25%) scale(0.9); }
+  100% { transform: translate(-35%, 20%) scale(1.2); }
+}
+
+@keyframes move-4 {
+  0% { transform: translate(-15%, 15%) scale(0.8); }
+  33% { transform: translate(5%, -10%) scale(1.1); }
+  66% { transform: translate(-20%, -5%) scale(1); }
+  100% { transform: translate(25%, -25%) scale(1.3); }
+}
+
+@keyframes move-amber {
+  0% { transform: translate(0%, 0%) scale(1); }
+  25% { transform: translate(-20%, 15%) scale(1.1); }
+  50% { transform: translate(10%, 25%) scale(0.9); }
+  75% { transform: translate(25%, -10%) scale(1.2); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+
+/* Update ball-5 to use the new circular-ish pattern */
+.ball-5 {
+  width: 20vw;
+  height: 20vw;
+  background: #fbbf24;
+  top: 10%;
+  right: 25%;
+  opacity: 0.25;
+  animation: move-amber 25s infinite linear;
 }
