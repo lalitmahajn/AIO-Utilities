@@ -10,6 +10,18 @@ const DEFAULT_ZONES = [
   'Asia/Dubai'
 ];
 
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+const getFormatter = (locale: string, options: Intl.DateTimeFormatOptions) => {
+  const cacheKey = `${locale}-${JSON.stringify(options)}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, options);
+    formatterCache.set(cacheKey, formatter);
+  }
+  return formatter;
+};
+
 const WorldClock: React.FC = () => {
   const localTz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const [watchlist, setWatchlist] = useStorage<string[]>('world-clock-watchlist', DEFAULT_ZONES);
@@ -40,7 +52,7 @@ const WorldClock: React.FC = () => {
   }, [isLive, now, customTime]);
 
   const formatTime = (date: Date, tz: string) => {
-    return new Intl.DateTimeFormat('en-GB', {
+    return getFormatter('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
@@ -49,7 +61,7 @@ const WorldClock: React.FC = () => {
   };
 
   const formatDate = (date: Date, tz: string) => {
-    return new Intl.DateTimeFormat('en-GB', {
+    return getFormatter('en-GB', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -58,7 +70,7 @@ const WorldClock: React.FC = () => {
   };
 
   const getDayNightStatus = (date: Date, tz: string) => {
-    const hour = parseInt(new Intl.DateTimeFormat('en-US', {
+    const hour = parseInt(getFormatter('en-US', {
       hour: 'numeric',
       hour12: false,
       timeZone: tz
@@ -111,18 +123,18 @@ const WorldClock: React.FC = () => {
       let region = '';
       let utcOffset = '';
       try {
-        const formatter = new Intl.DateTimeFormat('en-US', {
+        const formatter = getFormatter('en-US', {
           timeZone: tz,
           timeZoneName: 'longGeneric'
         });
-        const dparts = formatter.formatToParts(now);
+        const dparts = formatter.formatToParts(new Date());
         region = dparts.find(p => p.type === 'timeZoneName')?.value || '';
 
-        const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+        const offsetFormatter = getFormatter('en-US', {
           timeZone: tz,
           timeZoneName: 'shortOffset'
         });
-        const oParts = offsetFormatter.formatToParts(now);
+        const oParts = offsetFormatter.formatToParts(new Date());
         utcOffset = (oParts.find(p => p.type === 'timeZoneName')?.value || '').replace('GMT', 'UTC');
       } catch (e) { /* fallback */ }
 
@@ -139,7 +151,7 @@ const WorldClock: React.FC = () => {
         displayName: tz.replace(/_/g, ' ')
       };
     });
-  }, [allTimezones, now]);
+  }, [allTimezones]);
 
   const filteredTimezones = useMemo(() => {
     if (!search || search.length < 1) return [];
@@ -344,7 +356,7 @@ const ClockCard: React.FC<ClockCardProps> = ({
   
   const tzShort = useMemo(() => {
     try {
-      return new Intl.DateTimeFormat('en-US', {
+      return getFormatter('en-US', {
         timeZone: tz,
         timeZoneName: 'short'
       }).format(date).split(' ').pop()?.replace('GMT', 'GMT');
