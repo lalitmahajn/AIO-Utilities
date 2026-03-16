@@ -9,6 +9,7 @@ const CATEGORY_META: Record<string, { color: string; label: string }> = {
   productivity: { color: '#3b82f6', label: 'Productivity' },
   documents: { color: '#ef4444', label: 'Documents' },
   generators: { color: '#ec4899', label: 'Generator' },
+  image: { color: '#38bdf8', label: 'Image' },
   other: { color: '#6b7280', label: 'Other' },
 };
 

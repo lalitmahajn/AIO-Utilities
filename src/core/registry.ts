@@ -5,11 +5,11 @@ export interface Utility {
   name: string;
   description: string;
   icon?: string;
-  category: 'calculators' | 'converters' | 'formatters' | 'productivity' | 'documents' | 'generators' | 'other';
+  category: 'calculators' | 'converters' | 'formatters' | 'productivity' | 'documents' | 'generators' | 'image' | 'other';
   component: ComponentType;
 }
 
-class UtilityRegistry {
+export class UtilityRegistry {
   private utilities: Map<string, Utility> = new Map();
 
   register(utility: Utility) {
