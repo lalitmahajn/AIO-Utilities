@@ -9,7 +9,7 @@ export interface Utility {
   component: ComponentType;
 }
 
-class UtilityRegistry {
+export class UtilityRegistry {
   private utilities: Map<string, Utility> = new Map();
 
   register(utility: Utility) {
