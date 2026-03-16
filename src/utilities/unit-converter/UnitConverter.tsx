@@ -127,7 +127,7 @@ const UnitConverter: React.FC = () => {
         controller.abort();
       };
     }
-  }, [category, rates, loadingRates, error]);
+  }, [category, rates, error]);
 
   useEffect(() => {
     const availableUnits = UNITS[category].map(u => u.value);
