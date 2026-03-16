@@ -21,7 +21,7 @@ const WorldClock: React.FC = () => {
   const [search, setSearch] = useState('');
   const allTimezones = useMemo(() => {
     try {
-      return (Intl as any).supportedValuesOf('timeZone') as string[];
+      return Intl.supportedValuesOf('timeZone');
     } catch (e) {
       return ['UTC'];
     }
