@@ -94,19 +94,40 @@ const UnitConverter: React.FC = () => {
   // Currency state
   const [rates, setRates] = useState<Record<string, number>>({});
   const [loadingRates, setLoadingRates] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (category === 'currency' && Object.keys(rates).length === 0) {
+    if (category === 'currency' && Object.keys(rates).length === 0 && !loadingRates && !error) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       setLoadingRates(true);
-      fetch('https://api.exchangerate-api.com/v4/latest/USD')
-        .then(res => res.json())
+      setError(null);
+
+      fetch('https://api.exchangerate-api.com/v4/latest/USD', { signal: controller.signal })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
           setRates(data.rates);
           setLoadingRates(false);
         })
-        .catch(() => setLoadingRates(false));
+        .catch((err) => {
+          if (err.name === 'AbortError') {
+            setError('Request timed out. Please check your connection and try again.');
+          } else {
+            setError('Failed to fetch exchange rates. Please try again later.');
+          }
+          setLoadingRates(false);
+        });
+
+      return () => {
+        clearTimeout(timeoutId);
+        controller.abort();
+      };
     }
-  }, [category, rates]);
+  }, [category, rates, loadingRates, error]);
 
   useEffect(() => {
     const availableUnits = UNITS[category].map(u => u.value);
@@ -242,6 +263,32 @@ const UnitConverter: React.FC = () => {
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div className="spinner" style={{ margin: '0 auto' }}></div>
             <span style={{ fontSize: '0.9rem' }}>Fetching live rates...</span>
+          </div>
+        ) : error ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '1.5rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: '0.75rem',
+            color: '#ef4444'
+          }}>
+            <div style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>{error}</div>
+            <button
+              onClick={() => setError(null)}
+              style={{
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                padding: '0.4rem 1rem',
+                borderRadius: '0.4rem',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Try Again
+            </button>
           </div>
         ) : result !== null && (
           <div className="fade-in" style={{
