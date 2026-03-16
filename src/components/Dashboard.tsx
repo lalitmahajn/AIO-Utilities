@@ -9,6 +9,7 @@ const CATEGORY_META: Record<string, { color: string; label: string }> = {
   productivity: { color: '#3b82f6', label: 'Productivity' },
   documents: { color: '#ef4444', label: 'Documents' },
   generators: { color: '#ec4899', label: 'Generator' },
+  image: { color: '#38bdf8', label: 'Image' },
   other: { color: '#6b7280', label: 'Other' },
 };
 
@@ -166,7 +167,9 @@ const Dashboard: React.FC = () => {
 
       {selectedUtility ? (
         <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-          <selectedUtility.component />
+          <React.Suspense fallback={<div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>Loading tool...</div>}>
+            <selectedUtility.component />
+          </React.Suspense>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
