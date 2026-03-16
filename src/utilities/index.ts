@@ -4,6 +4,7 @@ import { registerWorldClock } from './world-clock';
 import { registerPdfTools } from './pdf-tools';
 import { registerImageTools } from './image-tools';
 import { registerQrGenerator } from './generators';
+import { registerGrammarChecker } from './grammar-checker';
 
 export const registerAllUtilities = () => {
   registerAgeCalculator();
@@ -12,4 +13,5 @@ export const registerAllUtilities = () => {
   registerPdfTools();
   registerImageTools();
   registerQrGenerator();
+  registerGrammarChecker();
 };
