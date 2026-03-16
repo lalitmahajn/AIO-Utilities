@@ -33,9 +33,11 @@ const GrammarChecker: React.FC = () => {
     try {
       const params = new URLSearchParams();
       params.append('text', text);
-      params.append('language', 'auto');
+      params.append('language', 'en-US'); // Force English to ensure grammar rules run
+      params.append('enabledRules', 'ARTICLE_MISSING,EN_A_VS_AN,MISSING_ARTICLE,EN_UNCOUNTABLE_A,CD_NN,A_N_IN');
+      params.append('level', 'picky'); // Activate additional formal grammar and style rules
 
-      const response = await fetch('https://api.languagetool.org/v2/check', {
+      const response = await fetch('https://api.languagetoolplus.com/v2/check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -99,6 +101,29 @@ const GrammarChecker: React.FC = () => {
     setSelectedMatch(null);
   };
 
+  const autoFixAll = () => {
+    let currentText = text;
+    let offsetAdjustment = 0;
+    
+    const sortedMatches = [...matches].sort((a, b) => a.offset - b.offset);
+    
+    sortedMatches.forEach(match => {
+      if (match.replacements && match.replacements.length > 0) {
+        const suggestion = match.replacements[0].value;
+        const adjustedOffset = match.offset + offsetAdjustment;
+        
+        currentText = currentText.substring(0, adjustedOffset) + suggestion + currentText.substring(adjustedOffset + match.length);
+        offsetAdjustment += suggestion.length - match.length;
+      }
+    });
+    
+    setText(currentText);
+    setMatches([]);
+    setHasChecked(false); // Switch back to edit mode
+    setSelectedMatch(null);
+  };
+
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(text);
     // Could add a toast here
@@ -125,6 +150,7 @@ const GrammarChecker: React.FC = () => {
         <span
           key={`match-${index}`}
           onClick={() => setSelectedMatch(match)}
+          title={match.message}
           style={{
             background: selectedMatch === match ? 'rgba(56, 189, 248, 0.3)' : 'rgba(239, 68, 68, 0.2)',
             borderBottom: `2px solid ${selectedMatch === match ? 'var(--accent-primary)' : '#ef4444'}`,
@@ -193,20 +219,25 @@ const GrammarChecker: React.FC = () => {
             onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
           />
         ) : (
-          <div style={{
-            width: '100%',
-            minHeight: '300px',
-            maxHeight: '500px',
-            overflowY: 'auto',
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid var(--accent-primary)',
-            borderRadius: '1rem',
-            color: 'var(--text-primary)',
-            padding: '1.25rem',
-            fontSize: '1rem',
-            lineHeight: '1.6',
-          }}>
-            {renderTextWithHighlights()}
+          <div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', marginBottom: '0.75rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>ℹ️</span> Click on the highlighted text below to see suggestions.
+            </div>
+            <div style={{
+              width: '100%',
+              minHeight: '300px',
+              maxHeight: '500px',
+              overflowY: 'auto',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--accent-primary)',
+              borderRadius: '1rem',
+              color: 'var(--text-primary)',
+              padding: '1.25rem',
+              fontSize: '1rem',
+              lineHeight: '1.6',
+            }}>
+              {renderTextWithHighlights()}
+            </div>
           </div>
         )}
         <div style={{
@@ -348,6 +379,25 @@ const GrammarChecker: React.FC = () => {
             <>🔍 {hasChecked ? 'Re-check Text' : 'Check Text'}</>
           )}
         </button>
+        {hasChecked && matches.length > 0 && (
+          <button
+            onClick={autoFixAll}
+            style={{
+              flex: 1,
+              background: 'rgba(16, 185, 129, 0.1)',
+              color: '#10b981',
+              padding: '1rem',
+              fontSize: '1rem',
+              borderRadius: '0.75rem',
+              fontWeight: '600',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}
+          >
+            ✨ Fix All
+          </button>
+        )}
         {hasChecked && (
           <button
             onClick={copyToClipboard}
