@@ -17,7 +17,7 @@ The goal of this project is to provide a single, premium interface for all your 
 
 ## 🖥️ Demo
 
-Deployed on GitHub Pages: **[Live App (Example Link)](#)** *(Update with actual link when available)*
+Deployed on GitHub Pages: **[Live App](https://lalitmahajn.github.io/AIO-Utilities/)**
 
 ---
 
@@ -26,18 +26,22 @@ Deployed on GitHub Pages: **[Live App (Example Link)](#)** *(Update with actual 
 - 🎂 **Age Calculator** — Calculate exact age from a date of birth, or find the exact gap between two complex dates.
 - 📏 **Unit Converter** — Instantly convert between Length, Mass, Temperature, Area, and Volume with automatically sorted output magnitudes.
 - 🌍 **World Clock & Timezone Converter** — Search and save global timezones. Includes a smart search algorithm linking countries to IANA IDs, day/night visual indicators, and an interactive timeline.
+- 📝 **Grammar Checker** — AI-powered prose analysis using LanguageTool. Features real-time error highlighting, tooltips with grammatical explanations, and a one-click "Auto-Fix All" button.
 - 🔓 **PDF Password Remover** — A 100% client-side tool to strip passwords from PDFs using native browser decryption and `pdf-lib`. Your documents never leave your computer.
-- 🖼️ **Image Format Converter** — Drag and drop images to instantly convert between PNG, JPG, WEBP, and even rasterize SVG files. Features a real-time quality slider with live file size estimation.
+- 🖼️ **Image Tools** — 
+    - **Format Converter**: Drag and drop images to convert between PNG, JPG, WEBP, and SVG. 
+    - **Image Compressor**: Reduce file sizes to a specific target (KB/MB) using high-performance client-side scaling.
+- 🔗 **QR Code Generator** — Generate premium QR codes with custom colors, adjustable error correction levels, and the ability to overlay logos at custom positions.
 
 ---
 
 ## 🚀 Key Features
 
 *   **Scalable Architecture** — A centralized `UtilityRegistry` allows developers to plug-and-play new tools in seconds without modifying core routing logic.
-*   **Local Persistence** — Integrated IndexedDB (via `Dexie.js`) silently saves your preferences (like World Clock watchlists) locally.
+*   **Local Persistence** — Integrated IndexedDB (via `Dexie.js`) silently saves your preferences (like World Clock watchlists or QR settings) locally.
 *   **Premium UI** — A stunning dark-slate theme built with pure CSS, featuring glassmorphism, responsive grids, and highly polished micro-interactions.
-*   **Privacy First** — 100% offline-capable client-side processing. Files and data never touch a remote server.
-*   **CI/CD Ready** — Automated deployment pipelines using GitHub Actions to deploy directly to GitHub Pages.
+*   **Privacy First** — Most utilities process data 100% offline. The Grammar Checker uses an external API (clearly marked) but everything else happens in your browser.
+*   **CI/CD Ready** — Automated deployment pipelines using GitHub Actions.
 
 ---
 
@@ -47,20 +51,20 @@ Since this app handles potentially sensitive user files (like PDFs and Images), 
 
 | Layer | Protection |
 |-------|-----------|
-| **100% Client-Side** | All utilities run directly in your browser's memory. |
-| **No File Uploads** | Files are processed locally using HTML5 `Canvas` and Web APIs. |
+| **100% Client-Side** | All core utilities run directly in your browser's memory. |
+| **External API (Opt-in)** | The **Grammar Checker** sends text to LanguageTool API for analysis. This is the only tool that requires an internet connection. |
+| **No Data Mining** | Files are processed locally. We do not store or see your documents. |
 | **Local Storage** | Your settings and history are saved only to your device via IndexedDB. |
-| **Open Source** | Full transparency into how the app processes data. |
 
 ---
 
 ## 💻 Tech Stack
 
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Vanilla CSS (CSS Variables + Scoped Modules)
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 8
+- **Styling**: Vanilla CSS (Premium Design System)
 - **Storage**: IndexedDB (Dexie)
-- **Key Libraries**: `pdf-lib`, `@pdfsmaller/pdf-decrypt`
+- **Key APIs**: `pdf-lib`, `LanguageTool API`, `qrcode`
 
 ---
 
@@ -68,19 +72,16 @@ Since this app handles potentially sensitive user files (like PDFs and Images), 
 
 ```text
 src/
-├── core/         # Core architectures like the Utility Registry and Storage adapters
-├── components/   # Shared UI (Dashboard, Sidebar, Layout)
-├── utilities/    # Individual isolated tool packages (age-calculator, image-tools, etc.)
-├── hooks/        # Reusable React hooks
-└── styles/       # Global design system & theme tokens
+├── core/         # Registry, Storage, and Hub architectures
+├── components/   # Shared UI components (Dashboard, Layout)
+├── utilities/    # Isolated tool logic (Age Calc, PDF, QR, etc.)
+├── hooks/        # Persistence and UI state hooks
+└── styles/       # Global theme and animation tokens
 ```
 
 ---
 
 ## 🚀 Quick Start
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) 18+ (for local development)
 
 ### 1. Clone the Repository
 ```bash
