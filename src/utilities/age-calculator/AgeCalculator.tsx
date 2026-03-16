@@ -237,7 +237,7 @@ const AgeCalculator: React.FC = () => {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: mode === 'gap' ? '1fr 1fr' : '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+      <div className={mode === 'gap' ? 'responsive-grid-2' : ''} style={{ display: mode === 'gap' ? undefined : 'grid', gridTemplateColumns: mode === 'gap' ? undefined : '1fr', gap: mode === 'gap' ? undefined : '1.5rem', marginBottom: '2.5rem' }}>
         <CustomDateInput
           label={mode === 'birthday' ? 'Date of Birth' : 'Person 1 Birthday'}
           value={date1}
