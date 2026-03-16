@@ -1,4 +1,5 @@
-import PdfPasswordRemover from './PdfPasswordRemover';
+import { lazy } from 'react';
+const PdfPasswordRemover = lazy(() => import('./PdfPasswordRemover'));
 import { registry } from '../../core/registry';
 
 export function registerPdfTools() {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { registry, type Utility } from '../core/registry';
 import '../styles/global.css';
 
@@ -166,7 +166,24 @@ const Dashboard: React.FC = () => {
 
       {selectedUtility ? (
         <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-          <selectedUtility.component />
+          <Suspense fallback={
+            <div className="glass-card fade-in" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <div className="loading-spinner" style={{ 
+                margin: '0 auto 1.5rem',
+                width: '40px',
+                height: '40px',
+                border: '3px solid rgba(56, 189, 248, 0.1)',
+                borderTopColor: 'var(--accent-primary)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }} />
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                Optimizing your tool...
+              </p>
+            </div>
+          }>
+            <selectedUtility.component />
+          </Suspense>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>

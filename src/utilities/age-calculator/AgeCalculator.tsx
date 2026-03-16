@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStorage } from '../../hooks/useStorage';
 import '../../styles/global.css';
 
@@ -22,6 +22,11 @@ const CustomDateInput: React.FC<CustomDateInputProps> = ({ label, value, onChang
   };
 
   const [parts, setParts] = useState(parseInit(value));
+
+  // Sync internal state when value prop changes externally (e.g., mode switch, storage load)
+  useEffect(() => {
+    setParts(parseInit(value));
+  }, [value]);
 
   const update = (newParts: { d: string; m: string; y: string }) => {
     setParts(newParts);
@@ -124,11 +129,12 @@ const AgeCalculator: React.FC = () => {
       const month = parseInt(parts[1]) - 1;
       let year = parseInt(parts[2]);
       if (year < 100) year += (year < 50) ? 2000 : 1900;
+      // Reject invalid values (day 0, month -1, etc.)
+      if (day < 1 || month < 0 || month > 11 || year < 1) return null;
       const date = new Date(year, month, day);
       if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) return date;
     }
-    const native = new Date(dateStr);
-    return isNaN(native.getTime()) ? null : native;
+    return null;
   }, []);
 
   const { age, nextBirthday, stats } = useMemo(() => {
@@ -227,19 +233,19 @@ const AgeCalculator: React.FC = () => {
             transition: 'all 0.2s',
           }}
         >
-          Date Gap Mode
+          Age Gap Mode
         </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: mode === 'gap' ? '1fr 1fr' : '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
         <CustomDateInput
-          label={mode === 'birthday' ? 'Date of Birth' : 'Start Date'}
+          label={mode === 'birthday' ? 'Date of Birth' : 'Person 1 Birthday'}
           value={date1}
           onChange={setDate1}
         />
         {mode === 'gap' && (
           <CustomDateInput
-            label="End Date"
+            label="Person 2 Birthday"
             value={date2}
             onChange={setDate2}
           />
@@ -261,10 +267,10 @@ const AgeCalculator: React.FC = () => {
           }}>
              <div style={{ 
                position: 'absolute', top: '-10px', right: '-10px', fontSize: '4rem', opacity: 0.05, pointerEvents: 'none' 
-             }}>🎉</div>
+             }}>{mode === 'birthday' ? '🎉' : '📐'}</div>
              
              <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 'bold', marginBottom: '1.5rem' }}>
-               Current Age
+               {mode === 'birthday' ? 'Current Age' : 'Age Gap'}
              </div>
              
              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
@@ -317,16 +323,22 @@ const AgeCalculator: React.FC = () => {
             <div style={{ marginTop: '2.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                 <div style={{ width: '4px', height: '1.2rem', background: 'var(--accent-primary)', borderRadius: '2px' }} />
-                <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>Life in Numbers</h3>
+                <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{mode === 'birthday' ? 'Life in Numbers' : 'Gap Breakdown'}</h3>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-                {[
+                {(mode === 'birthday' ? [
                   { label: 'Total Months', value: stats.totalMonths, icon: '📅' },
                   { label: 'Total Weeks', value: stats.totalWeeks, icon: '🗓️' },
                   { label: 'Total Days', value: stats.totalDays, icon: '☀️' },
                   { label: 'Total Hours', value: stats.totalHours, icon: '🕒' },
                   { label: 'Total Minutes', value: stats.totalMinutes, icon: '⌛' }
-                ].map((stat, i) => (
+                ] : [
+                  { label: 'Elapsed Months', value: stats.totalMonths, icon: '📅' },
+                  { label: 'Elapsed Weeks', value: stats.totalWeeks, icon: '🗓️' },
+                  { label: 'Elapsed Days', value: stats.totalDays, icon: '☀️' },
+                  { label: 'Elapsed Hours', value: stats.totalHours, icon: '🕒' },
+                  { label: 'Elapsed Minutes', value: stats.totalMinutes, icon: '⌛' }
+                ]).map((stat, i) => (
                   <div key={i} style={{ 
                     background: 'rgba(255,255,255,0.02)',
                     padding: '1rem',
@@ -353,7 +365,7 @@ const AgeCalculator: React.FC = () => {
         </div>
       )}
 
-      {!age && date1 && (
+      {!age && (date1 || date2) && (
         <div style={{ 
           marginTop: '2rem', 
           textAlign: 'center', 
@@ -366,6 +378,10 @@ const AgeCalculator: React.FC = () => {
         }}>
           {mode === 'birthday' && parseDate(date1) && parseDate(date1)! > new Date() 
             ? 'Wait, are you from the future? Please enter a valid date.' 
+            : mode === 'gap' && date1 && !date2
+            ? 'Please enter Person 2\'s Birthday to calculate the gap.'
+            : mode === 'gap' && !date1 && date2
+            ? 'Please enter Person 1\'s Birthday to calculate the gap.'
             : 'Please enter a complete and valid date.'}
         </div>
       )}

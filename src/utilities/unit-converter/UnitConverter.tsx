@@ -169,31 +169,25 @@ const UnitConverter: React.FC = () => {
         <h2 className="gradient-text" style={{ margin: 0, fontSize: '1.75rem' }}>Unit Converter</h2>
       </div>
       
-      {/* Category Picker */}
       <div style={{ 
         display: 'flex', 
-        gap: '0.4rem', 
-        marginBottom: '2rem', 
-        overflowX: 'auto', 
-        paddingBottom: '0.6rem',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none',
-      }}
-      className="no-scrollbar"
-      >
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '0.6rem', 
+        marginBottom: '2rem',
+      }}>
         {(Object.keys(UNITS) as Category[]).map(cat => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
             style={{
-              flexShrink: 0,
               background: category === cat ? 'var(--accent-primary)' : 'rgba(255,255,255,0.03)',
               color: category === cat ? 'var(--bg-primary)' : 'var(--text-secondary)',
               border: `1px solid ${category === cat ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-              padding: '0.5rem 1rem',
+              padding: '0.5rem 1.25rem',
               borderRadius: '999px',
               fontSize: '0.85rem',
-              fontWeight: '600',
+              fontWeight: '700',
               textTransform: 'capitalize',
               transition: 'all 0.2s ease',
             }}

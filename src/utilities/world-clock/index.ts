@@ -1,4 +1,5 @@
-import WorldClock from './WorldClock';
+import { lazy } from 'react';
+const WorldClock = lazy(() => import('./WorldClock'));
 import { registry } from '../../core/registry';
 
 export const registerWorldClock = () => {

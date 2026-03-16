@@ -1,4 +1,5 @@
-import QrGenerator from './QrGenerator';
+import { lazy } from 'react';
+const QrGenerator = lazy(() => import('./QrGenerator'));
 import { registry } from '../../core/registry';
 
 export const registerQrGenerator = () => {

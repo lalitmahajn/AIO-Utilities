@@ -1,4 +1,5 @@
-import AgeCalculator from './AgeCalculator';
+import { lazy } from 'react';
+const AgeCalculator = lazy(() => import('./AgeCalculator'));
 import { registry } from '../../core/registry';
 
 export const registerAgeCalculator = () => {

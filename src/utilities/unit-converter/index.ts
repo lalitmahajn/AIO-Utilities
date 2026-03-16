@@ -1,4 +1,5 @@
-import UnitConverter from './UnitConverter';
+import { lazy } from 'react';
+const UnitConverter = lazy(() => import('./UnitConverter'));
 import { registry } from '../../core/registry';
 
 export const registerUnitConverter = () => {

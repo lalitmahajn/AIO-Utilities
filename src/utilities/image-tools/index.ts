@@ -1,4 +1,5 @@
-import ImageConverter from './ImageConverter';
+import { lazy } from 'react';
+const ImageConverter = lazy(() => import('./ImageConverter'));
 import { registry } from '../../core/registry';
 
 export function registerImageTools() {
