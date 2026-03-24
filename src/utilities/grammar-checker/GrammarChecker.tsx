@@ -10,6 +10,7 @@ const GrammarChecker: React.FC = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -126,7 +127,8 @@ const GrammarChecker: React.FC = () => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(text);
-    // Could add a toast here
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const renderTextWithHighlights = () => {
@@ -440,6 +442,26 @@ const GrammarChecker: React.FC = () => {
           <span>Powered by LanguageTool. Your text is sent to their servers for processing.</span>
         </div>
       </div>
+
+      {showToast && (
+        <div className="fade-in" style={{
+          position: 'fixed',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(16, 185, 129, 0.9)',
+          color: '#fff',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '2rem',
+          boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+          zIndex: 1000,
+          fontWeight: '500',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          Copied to clipboard! 📋
+        </div>
+      )}
     </div>
   );
 };
