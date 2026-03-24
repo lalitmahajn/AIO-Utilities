@@ -15,9 +15,20 @@ const CATEGORY_META: Record<string, { color: string; label: string }> = {
 
 const Dashboard: React.FC = () => {
   const [selectedUtility, setSelectedUtility] = useState<Utility | null>(null);
+  const [activeInputTab, setActiveInputTab] = useState<'keyboard' | 'mouse'>('keyboard');
   const [search, setSearch] = useState('');
 
   const utilities = registry.getAllUtilities();
+
+  // Helper to change utility via hash
+  const navigateTo = (u: Utility | string | null) => {
+    if (!u) {
+      window.location.hash = '';
+      return;
+    }
+    const id = typeof u === 'string' ? u : u.id;
+    window.location.hash = id;
+  };
 
   // Sync state with hash on mount and when hash changes
   React.useEffect(() => {
@@ -38,10 +49,6 @@ const Dashboard: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [utilities]);
 
-  // Helper to change utility via hash
-  const navigateTo = (id: string | null) => {
-    window.location.hash = id || '';
-  };
   const filteredUtilities = utilities.filter(u => 
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.description.toLowerCase().includes(search.toLowerCase())
@@ -62,44 +69,34 @@ const Dashboard: React.FC = () => {
           padding: '0.75rem 2rem',
           transition: 'padding 0.3s ease'
         }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}
-            onClick={() => navigateTo(null)}
-          >
-            <img 
-              src={`${import.meta.env.BASE_URL}logo.png`} 
-              alt="Logo" 
-              style={{ width: '32px', height: '32px', borderRadius: '0.5rem' }} 
-            />
-            <span className="gradient-text" style={{ fontSize: '1.25rem', fontWeight: 'bold', letterSpacing: '-0.02em' }}>
-              AIO Utilities
-            </span>
-          </div>
+        <div style={{ maxWidth: selectedUtility ? '1400px' : '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {selectedUtility ? (
+            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+              <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>
+                {selectedUtility.name}
+              </span>
+            </div>
+          ) : (
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}
+              onClick={() => navigateTo(null)}
+            >
+              <img 
+                src={`${import.meta.env.BASE_URL}logo.png`} 
+                alt="Logo" 
+                style={{ width: '32px', height: '32px', borderRadius: '0.5rem' }} 
+              />
+              <span className="gradient-text" style={{ fontSize: '1.25rem', fontWeight: 'bold', letterSpacing: '-0.02em' }}>
+                AIO Utilities
+              </span>
+            </div>
+          )}
           
           {selectedUtility && (
             <button 
               onClick={() => navigateTo(null)}
-              className="dashboard-button"
-              style={{ 
-                padding: '0.5rem 1rem', 
-                fontSize: '0.85rem', 
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '0.5rem',
-                color: 'var(--text-primary)',
-                fontWeight: '600',
-                transition: 'all 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-              }}
+              className="kt-back-btn"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: '600' }}
             >
               ← Back to Dashboard
             </button>
@@ -107,7 +104,7 @@ const Dashboard: React.FC = () => {
         </div>
       </nav>
 
-      <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '1.5rem', maxWidth: selectedUtility ? '1400px' : '1200px', margin: '0 auto' }}>
         {!selectedUtility && (
           <header style={{ marginBottom: '3rem', textAlign: 'center', paddingTop: '2rem' }}>
             {/* Hero with subtle gradient orb */}
@@ -166,7 +163,7 @@ const Dashboard: React.FC = () => {
         )}
 
       {selectedUtility ? (
-        <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+        <div style={{ margin: '0 auto', width: '100%' }}>
           <Suspense fallback={
             <div className="glass-card fade-in" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
               <div className="loading-spinner" style={{ 
@@ -183,7 +180,8 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
           }>
-            <selectedUtility.component />
+            {/* @ts-ignore */}
+            <selectedUtility.component activeTab={activeInputTab} onTabChange={setActiveInputTab} />
           </Suspense>
         </div>
       ) : (

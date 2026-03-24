@@ -5,8 +5,7 @@ import { registerPdfTools } from './pdf-tools';
 import { registerImageTools } from './image-tools';
 import { registerQrGenerator } from './generators';
 import { registerGrammarChecker } from './grammar-checker';
-import { registerMouseTest } from './mouse-test';
-import { registerKeyboardTest } from './keyboard-test';
+import { registerInputTester } from './input-tester';
 
 export const registerAllUtilities = () => {
   registerAgeCalculator();
@@ -16,6 +15,5 @@ export const registerAllUtilities = () => {
   registerImageTools();
   registerQrGenerator();
   registerGrammarChecker();
-  registerMouseTest();
-  registerKeyboardTest();
+  registerInputTester();
 };
